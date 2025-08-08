@@ -35,6 +35,27 @@ jobs:
         fetch-depth: 0
         submodules: recursive
 
+    - name: Update DumpAcpiTableToFile function in ShellPkg AcpiView
+      run: |
+        sed -i '36i \\x20\x20@param [in] Signature The ACPI table Signature.' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '46i \\x20\x20IN CONST UINT32  Signature,' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '47s/8/8 /' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '48s/L/ L/' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '53i \\x20\x20UINT8                *SignaturePtr;' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '56i \\x20\x20SignaturePtr = (UINT8 *)(UINTN)&Signature;' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '62s/s/c%c%c%c/;62s/bin/aml/' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '63s/electedTable->Name/ignaturePtr[0]/' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '64i \\x20\x20\x20\x20SignaturePtr[1],' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '65i \\x20\x20\x20\x20SignaturePtr[2],' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '66i \\x20\x20\x20\x20SignaturePtr[3],' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '70s/o /o/;70s/s/s (%d bytes)/;70s/er/er, Length/' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '131s/\\nI/I/' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '149s/(/(Signature, /' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '307s/\\nR/R/' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        sed -i '313s/\\nT/T/' edk2/ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+        cd edk2
+        git -P diff ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
+
     - name: Install toolchains
       run: |
         sudo apt-get update
@@ -69,7 +90,7 @@ jobs:
         source edksetup.sh
         for BUILD_TYPE in ${{ env.BUILD_TYPES }}; do
           for ARCH in ${{ env.ARCHS }} ; do
-            build -a $ARCH -b $BUILD_TYPE -t ${{ env.COMPILER }} -p ShellPkg/ShellPkg.dsc --pcd gEfiShellPkgTokenSpaceGuid.PcdShellScreenLogCount=8 --pcd gEfiShellPkgTokenSpaceGuid.PcdShellSupplier=L"${{ steps.set_version.outputs.edk2_tag }} (https://github.com/pbatard/UEFI-Shell)"
+            build -a $ARCH -b $BUILD_TYPE -t ${{ env.COMPILER }} -p ShellPkg/ShellPkg.dsc
           done
         done
 
@@ -171,6 +192,8 @@ jobs:
         sha256sum ./*.efi >> body.txt
         sha256sum ./*.iso >> body.txt
         printf "\`\`\`\n" >> body.txt
+        printf "* %s\n" "Build: Remove PcdShellScreenLogCount and PcdShellSupplier" >> body.txt
+        printf "* %s\n" "ShellPkg/AcpiView: Update DumpAcpiTableToFile" >> body.txt
 
     - name: Create release
       uses: softprops/action-gh-release@v2
