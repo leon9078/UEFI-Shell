@@ -1,9 +1,9 @@
 name: Linux, gcc, EDK2
 
 on:
-  push:
-    tags:
-      - '*'
+  workflow_dispatch:
+  release:
+    types: [published]
 
 env:
   COMPILER: GCC5
@@ -66,10 +66,11 @@ jobs:
     - name: Build UEFI binaries
       run: |
         cd edk2
+        perl -i -pe 'print "  \@param [in] Signature The ACPI table Signature.\r\n" if $. == 36;print "  IN CONST UINT32  Signature,\r\n" if $. == 45;s/8/8 / if $. == 45;s/L/ L/ if $. == 46;print "  UINT8                *SignaturePtr;\r\n" if $. == 51;print "  SignaturePtr = (UINT8 *)(UINTN)&Signature;\r\n" if $. == 53;s/s(%04d.)bin/c%c%c%c$1aml/ if $. == 58;s/electedTable->Name/ignaturePtr[0]/ if $. == 59;print "    SignaturePtr[1],\r\n    SignaturePtr[2],\r\n    SignaturePtr[3],\r\n" if $. == 60;s/ (: %s )(... \", FileNameBuffer)/$1(%d bytes) $2, Length/ if $. == 63;s/\\nI/I/ if $. == 124;s/(TableP)/Signature, $1/ if $. == 142;s/\\nR/R/ if $. == 300;s/\\nT/T/ if $. == 306' ShellPkg/Library/UefiShellAcpiViewCommandLib/AcpiView.c
         source edksetup.sh
         for BUILD_TYPE in ${{ env.BUILD_TYPES }}; do
           for ARCH in ${{ env.ARCHS }} ; do
-            build -a $ARCH -b $BUILD_TYPE -t ${{ env.COMPILER }} -p ShellPkg/ShellPkg.dsc --pcd gEfiShellPkgTokenSpaceGuid.PcdShellScreenLogCount=8 --pcd gEfiShellPkgTokenSpaceGuid.PcdShellSupplier=L"${{ steps.set_version.outputs.edk2_tag }} (https://github.com/pbatard/UEFI-Shell)"
+            build -a $ARCH -b $BUILD_TYPE -t ${{ env.COMPILER }} -p ShellPkg/ShellPkg.dsc
           done
         done
 
@@ -171,6 +172,8 @@ jobs:
         sha256sum ./*.efi >> body.txt
         sha256sum ./*.iso >> body.txt
         printf "\`\`\`\n" >> body.txt
+        printf "* %s\n" "ShellPkg/AcpiView: Update DumpAcpiTableToFile" >> body.txt
+        printf "* %s\n" "Build: Remove PcdShellScreenLogCount and PcdShellSupplier" >> body.txt
 
     - name: Create release
       uses: softprops/action-gh-release@v2

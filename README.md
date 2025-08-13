@@ -64,7 +64,7 @@ To validate this claim, you can perform the following:
    pushed to this repository. This validates that the build was not triggered
    by a "hidden" commit, that would perform something malicious, and that we
    would later delete, since it is impossible for anyone without an army of
-   supercomputers to alter a git commit in order to "fake" a specific SHA-1.  
+   supercomputers to alter a git commit in order to "fake" a specific SHA-1.
    NB: You don't have to take our word for that last claim. Just google "SHA-1
    collision" and also look into the measures that git is taking to switch to
    SHA-256 so as to make the possibility of collision impossible.
@@ -100,7 +100,7 @@ To validate this claim, you can perform the following:
    the ability to delete and replace release files). This last step is very
    easy to accomplish however: As part of the build process, we make sure to
    also display the SHA-256 for all of the UEFI binaries as well as for the
-   ISO images being generated.  
+   ISO images being generated.
    Thus, depending on whether you extracted individual `.efi` files, or are
    working directly with a `.iso`, you can find the relevant SHA-256 displayed
    either under the `Display SHA-256` step or the `Generate ISO images` step
